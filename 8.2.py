@@ -1,11 +1,10 @@
 import sys
 import random # Для случайной генерации
 
-dannie = None  # Исходные данные (будет список из двух списков-матриц)
+dannie = None  
 otvet = None    # Результат
 
 def vvod_matr_ruchnoy(razmer):
-    """Читает матрицу вручную. Много вложенных циклов и try-except."""
     matr = []
     print(f"Вводим матрицу {razmer}x{razmer}:")
     for i in range(razmer):
@@ -37,11 +36,8 @@ def vvod_matr_sluchayno(razmer):
     return matr
 
 def vvod_dannyh():
-    """
-    Меню 1: Ввод данных. Реализован ввод и генерация.
-    """
     global dannie, otvet
-    print("\n--- Ввод данных (Итерация 2: Реализовано) ---")
+    print("\n Ввод исходных данных ")
     
     # 1. Размер
     while True:
@@ -58,9 +54,9 @@ def vvod_dannyh():
     while True:
         rezhim = input("Режим (1 - Ручной, 2 - Случайный): ")
         if rezhim == '1':
-            print("\n--- Ввод Матрицы A ---")
+            print("\n Ввод Матрицы A ")
             matr_a = vvod_matr_ruchnoy(razmer)
-            print("\n--- Ввод Матрицы B ---")
+            print("\n Ввод Матрицы B ")
             matr_b = vvod_matr_ruchnoy(razmer)
             break
         elif rezhim == '2':
@@ -81,49 +77,99 @@ def vvod_dannyh():
     for row in matr_b:
         print(row)
 
+#  Функции для алгоритма (ручная реализация) 
+
+def summa_matr(matr1, matr2):
+    """Сложение двух матриц (ручная реализация)."""
+    razmer = len(matr1)
+    rez_matr = []
+    for i in range(razmer):
+        stroka = []
+        for j in range(razmer):
+            stroka.append(matr1[i][j] + matr2[i][j])
+        rez_matr.append(stroka)
+    return rez_matr
+
+def get_minor(matr, i, j):
+    """Получение минора (для определителя)."""
+    razmer = len(matr)
+    minor = []
+    for row in range(razmer):
+        if row != i:
+            new_row = []
+            for col in range(razmer):
+                if col != j:
+                    new_row.append(matr[row][col])
+            minor.append(new_row)
+    return minor
+
+def opredelitel(matr):
+    """Вычисление определителя (рекурсивная ручная реализация)."""
+    razmer = len(matr)
+    
+    if razmer == 1:
+        return matr[0][0]
+    
+    if razmer == 2:
+        return matr[0][0] * matr[1][1] - matr[0][1] * matr[1][0]
+    
+    # Для больших матриц - рекурсия
+    det = 0
+    for j in range(razmer):
+        minor = get_minor(matr, 0, j)
+        det += ((-1) ** j) * matr[0][j] * opredelitel(minor)
+        
+    return det
+
+#  Основная функция алгоритма 
+
 def algoritm():
     """
-    Меню 2: Запуск алгоритма. Заглушка.
+    Меню 2: Выполнение алгоритма. Реализовано вручную.
     """
     global dannie, otvet
-    print("\n--- Запуск алгоритма (Итерация 2: Заглушка) ---")
+    print("\n Запуск алгоритма (Итерация 3: Реализовано вручную) ")
     if dannie is None:
         print("ОШИБКА: Сначала введите данные (пункт 1).")
         return
 
-    # Имитация работы
     matr_a, matr_b = dannie
     
-    # Заглушка: просто берем первую матрицу и говорим, что это сумма
-    simul_summa = matr_a 
-    simul_opr = 99.99 
+    # 1. Сумма матриц
+    summa = summa_matr(matr_a, matr_b)
     
+    # 2. Определитель суммы матриц
+    try:
+        opr = opredelitel(summa)
+    except Exception as e:
+        opr = f"Ошибка при расчете определителя: {e}"
+        
     otvet = {
-        'summa': simul_summa, 
-        'opredelitel': simul_opr
+        'summa': summa, 
+        'opredelitel': opr
     }
-    print("Алгоритм отработал (заглушка). Ответ сохранен.")
+    print("Алгоритм отработал. Ответ сохранен.")
 
 def pokazat_otvet():
     """
-    Меню 3: Показать ответ. Заглушка.
+    Меню 3: Показать ответ.
     """
-    print("\n--- Показать ответ (Итерация 2: Заглушка) ---")
+    print("\n Показать ответ ")
     if otvet is None:
         print("ОШИБКА: Сначала запустите алгоритм (пункт 2).")
         return
 
     print("Результат:")
-    print("Сумма матриц (Заглушка):")
+    print("Сумма матриц (A + B):")
     for row in otvet['summa']:
         print(row)
-    print(f"Определитель суммы (Заглушка): {otvet['opredelitel']}")
+    print(f"Определитель суммы матриц: {otvet['opredelitel']}")
 
 def vyhod():
     """
     Меню 4: Выход.
     """
-    print("\n--- Выход из программы ---")
+    print("\n Выход из программы ")
     sys.exit(0)
 
 def glavnoe_menu():
@@ -131,10 +177,10 @@ def glavnoe_menu():
     Главный цикл программы.
     """
     while True:
-        print("\nМЕНЮ (Итерация 2)")
+        print("\nМЕНЮ (Итерация 3) ")
         print("1. Ввод данных")
-        print("2. Запуск алгоритма (Заглушка)")
-        print("3. Показать ответ (Заглушка)")
+        print("2. Запуск алгоритма")
+        print("3. Показать ответ")
         print("4. Выход")
 
         vybor = input("Ваш выбор (1-4): ")
