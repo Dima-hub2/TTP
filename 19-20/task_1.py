@@ -17,6 +17,7 @@ def execute_task_1_algorithm(arr1, arr2):
     
     result = sorted(result)
     return result, a, b
+
 if __name__ == "__main__":
     arr1 = [1, 2, 3, 4]
     arr2 = [4, 3, 2, 1]
