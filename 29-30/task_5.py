@@ -1,12 +1,9 @@
 """
-Задание 5: Подмассивы с заданной суммой
+Задание 5
 """
 
-from exceptions import CalculationError
-
-def execute_5(arr: list, target: int) -> int:
-    """Основной алгоритм задания 5"""
-    
+def execute_5(arr, target):
+    """Алгоритм задания 5"""
     try:
         count = 0
         n = len(arr)
@@ -21,4 +18,4 @@ def execute_5(arr: list, target: int) -> int:
         return count
     
     except Exception as e:
-        raise CalculationError(f"Ошибка вычислений: {e}")
+        raise Exception(f"Ошибка вычислений: {e}")

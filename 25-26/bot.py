@@ -1,809 +1,356 @@
-# bot.py - полностью рабочая версия
-"""
-Telegram бот для задач 1, 4, 5.
-Интегрирует алгоритмы из task_1.py, task_4.py, task_5.py
-"""
-
 import asyncio
 import random
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
-import logging
 
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+# ========== КОНФИГУРАЦИЯ БОТА ==========
 
-# Импорт функций из task-файлов
-try:
-    # Импортируем функции для задания 1 из task_1.py
-    from task_1 import execute_task_1_algorithm
-except ImportError:
-    # Если импорт не удался, используем локальные функции
-    logger.warning("task_1.py не найден, используем локальные функции для задания 1")
-    
-    def execute_task_1_algorithm(arr1: list[int], arr2: list[int]) -> tuple:
-        """Основной алгоритм задания 1 (локальная версия)."""
-        logger.info(f"Задача 1: arr1={arr1}, arr2={arr2}")
-        
-        if len(arr1) != len(arr2):
-            raise Exception(f"Массивы должны быть одинаковой длины. Длина первого: {len(arr1)}, второго: {len(arr2)}")
-        
-        if not arr1 or not arr2:
-            raise Exception("Массив не может быть пустым")
-        
-        try:
-            a = sorted(arr1, reverse=True)
-            b = sorted(arr2)
-            
-            result = []
-            for i in range(len(a)):
-                if a[i] == b[i]:
-                    result.append(0)
-                else:
-                    result.append(a[i] + b[i])
-            
-            result = sorted(result)
-            logger.info(f"Результат: {result}")
-            return result, a, b
-            
-        except Exception as e:
-            logger.error(f"Ошибка: {e}")
-            raise Exception(f"Ошибка вычислений: {e}")
-
-# Определяем функции для заданий 4 и 5
-# В реальном коде они должны импортироваться из соответствующих файлов
-def execute_task_4_algorithm(arr1: list[int], arr2: list[int], operation: str) -> list:
-    """Основной алгоритм задания 4."""
-    logger.info(f"Задача 4: {arr1} {operation} {arr2}")
-    
-    try:
-        def digits_to_number(digits: list[int]) -> int:
-            if not digits:
-                return 0
-            return int(''.join(map(str, digits)))
-        
-        num1 = digits_to_number(arr1)
-        num2 = digits_to_number(arr2)
-        
-        if operation == '+':
-            result = num1 + num2
-        else:  # operation == '-'
-            result = num1 - num2
-        
-        if result < 0:
-            result_digits = ['-'] + [int(d) for d in str(abs(result))]
-        else:
-            result_digits = [int(d) for d in str(result)]
-        
-        logger.info(f"Результат: {result_digits}")
-        return result_digits
-        
-    except Exception as e:
-        logger.error(f"Ошибка: {e}")
-        raise Exception(f"Ошибка вычислений: {e}")
-
-def execute_task_5_algorithm(arr: list[int], target_sum: int) -> int:
-    """Основной алгоритм задания 5."""
-    logger.info(f"Задача 5: массив={arr}, сумма={target_sum}")
-    
-    try:
-        count = 0
-        n = len(arr)
-        
-        if n == 0:
-            return 0
-        
-        for i in range(n):
-            current_sum = 0
-            for j in range(i, n):
-                current_sum += arr[j]
-                if current_sum == target_sum:
-                    count += 1
-        
-        logger.info(f"Найдено подмассивов: {count}")
-        return count
-        
-    except Exception as e:
-        logger.error(f"Ошибка: {e}")
-        raise Exception(f"Ошибка вычислений: {e}")
-
-# === ИНИЦИАЛИЗАЦИЯ БОТА ===
 TOKEN = "8525462952:AAFx6PjQFg08wK5FpMsknLcbO0FebBhyTzc"
 
-storage = MemoryStorage()
-bot = Bot(token=TOKEN)
-dp = Dispatcher(storage=storage)
+# ИНИЦИАЛИЗАЦИЯ КОМПОНЕНТОВ AIOGRAM:
+# 1. Bot - основной объект для работы с Telegram API
+# 2. Dispatcher - маршрутизатор сообщений
+# 3. MemoryStorage - хранилище состояний в оперативной памяти
+bot = Bot(token=TOKEN)  # Создаем экземпляр бота
+dp = Dispatcher(storage=MemoryStorage())  # Создаем диспетчер с хранилищем в памяти
 
-# === СОЗДАНИЕ КЛАВИАТУР (КНОПОК) ===
-# Функции для создания клавиатур с кнопками
+# СЛОВАРЬ ДЛЯ ХРАНЕНИЯ СОСТОЯНИЙ ПОЛЬЗОВАТЕЛЕЙ
+# Ключ: user_id (уникальный ID пользователя в Telegram)
+# Значение: словарь с состоянием и данными пользователя
+users = {}
 
-def get_main_keyboard():
-    """Создает главное меню с кнопками выбора задания"""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="Задание 1")],
-            [KeyboardButton(text="Задание 4")],
-            [KeyboardButton(text="Задание 5")],
-            [KeyboardButton(text="Помощь")],
-        ],
-        resize_keyboard=True,
-        input_field_placeholder="Выберите задание"
-    )
+# ========== ИМПОРТ ВНЕШНИХ МОДУЛЕЙ ==========
 
-def get_task1_keyboard():
-    """Клавиатура для меню задания 1"""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="Ввести массивы")],
-            [KeyboardButton(text="Сгенерировать")],
-            [KeyboardButton(text="Выполнить расчет")],
-            [KeyboardButton(text="Показать результат")],
-            [KeyboardButton(text="В главное меню")],
-        ],
-        resize_keyboard=True
-    )
+from logger import log  # Функции логгирования
+from exceptions import *  # Пользовательские исключения
+from messages import *  # Текстовые сообщения
+from task_1 import execute_1  # Алгоритм задания 1
+from task_4 import execute_4  # Алгоритм задания 4
+from task_5 import execute_5  # Алгоритм задания 5
 
-def get_task4_keyboard():
-    """Клавиатура для меню задания 4"""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="Ввести числа")],
-            [KeyboardButton(text="Сгенерировать")],
-            [KeyboardButton(text="Выбрать операцию")],
-            [KeyboardButton(text="Выполнить расчет")],
-            [KeyboardButton(text="Показать результат")],
-            [KeyboardButton(text="В главное меню")],
-        ],
-        resize_keyboard=True
-    )
+# ========== КЛАВИАТУРЫ (КНОПКИ) ==========
 
-def get_task5_keyboard():
-    """Клавиатура для меню задания 5"""
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="Ввести массив")],
-            [KeyboardButton(text="Ввести сумму")],
-            [KeyboardButton(text="Сгенерировать")],
-            [KeyboardButton(text="Выполнить расчет")],
-            [KeyboardButton(text="Показать результат")],
-            [KeyboardButton(text="В главное меню")],
-        ],
-        resize_keyboard=True
-    )
+def get_kb(buttons):
+    """
+    Создает клавиатуру с кнопками
+    Parameters:
+        buttons: список строк - тексты кнопок
+    Returns:
+        ReplyKeyboardMarkup - объект клавиатуры
+    """
+    # Создаем массив кнопок: каждая кнопка в отдельном ряду
+    keyboard = [[KeyboardButton(text=b)] for b in buttons]
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
-# === УПРОЩЕННЫЙ FSM ===
-# Хранит состояние каждого пользователя
-user_states = {}
+# ГЛАВНОЕ МЕНЮ - 4 кнопки выбора задания + помощь
+MAIN_KB = get_kb(["Задание 1", "Задание 4", "Задание 5", "Помощь"])
 
-# === ОБРАБОТЧИКИ СООБЩЕНИЙ ===
-# Обработчики команд и кнопок
+# МЕНЮ ЗАДАНИЯ - общие действия для всех заданий
+TASK_KB = get_kb(["Ввести", "Сгенерировать", "Выполнить", "Результат", "Назад"])
+
+# ========== ОБРАБОТЧИКИ КОМАНД ==========
 
 @dp.message(F.text == "/start")
-async def cmd_start(message: Message):
-    """Обработчик команды /start"""
-    user_id = message.from_user.id
+async def start_cmd(msg: Message):
+    """
+    Обработчик команды /start
+    Вызывается когда пользователь пишет /start или первый раз пишет боту
+    """
+    user_id = msg.from_user.id  # Получаем уникальный ID пользователя
     
-    # Инициализация состояния пользователя
-    user_states[user_id] = {
-        "state": "MAIN_MENU",
-        "task1": {"arr1": None, "arr2": None, "result": None, "sorted1": None, "sorted2": None},
-        "task4": {"arr1": None, "arr2": None, "operation": None, "result": None},
-        "task5": {"arr": None, "target_sum": None, "result": None}
-    }
+    # Инициализируем состояние пользователя в словаре users
+    # "state": "main" - пользователь в главном меню
+    # Позже добавим другие состояния: "task1", "task4", "task5", "await_op"
+    users[user_id] = {"state": "main"}
     
-    await message.answer(
-        "Привет! Я бот для работы с массивами.\n\n"
-        "Доступные задания:\n"
-        "1. Задание 1 - Обработка двух массивов\n"
-        "2. Задание 4 - Арифметика чисел-массивов\n"
-        "3. Задание 5 - Подмассивы с заданной суммой\n\n"
-        "Выберите задание для работы:",
-        reply_markup=get_main_keyboard()
-    )
-
-@dp.message(F.text == "/help")
-async def cmd_help(message: Message):
-    """Обработчик команды /help"""
-    help_text = (
-        "Справка по боту\n\n"
-        "Основные команды:\n"
-        "/start - Начать работу с ботом\n"
-        "/help - Показать справку\n\n"
-        "Доступные задания:\n"
-        "1. Задание 1 - Обработка двух массивов\n"
-        "2. Задание 4 - Арифметика чисел-массивов\n"
-        "3. Задание 5 - Подмассивы с заданной суммой\n\n"
-        "Используйте кнопки для навигации."
-    )
-    await message.answer(help_text)
+    # Отправляем приветственное сообщение с главной клавиатурой
+    await msg.answer(WELCOME, reply_markup=MAIN_KB)
+    
+    # Логируем событие
+    log(f"User {user_id} started")
 
 @dp.message(F.text == "Помощь")
-async def cmd_help_button(message: Message):
-    """Обработчик кнопки помощи"""
-    await cmd_help(message)
+async def help_cmd(msg: Message):
+    """
+    Обработчик кнопки "Помощь"
+    Показывает справку по использованию бота
+    """
+    await msg.answer(HELP_TEXT)
 
-# === ОБРАБОТЧИКИ ДЛЯ ЗАДАНИЯ 1 ===
+@dp.message(F.text == "Назад")
+async def back_cmd(msg: Message):
+    """
+    Обработчик кнопки "Назад"
+    Возвращает пользователя в главное меню
+    """
+    user_id = msg.from_user.id
+    
+    # Сбрасываем состояние на "main" (главное меню)
+    users[user_id] = {"state": "main"}
+    
+    # Показываем главное меню
+    await msg.answer("Главное меню:", reply_markup=MAIN_KB)
 
-@dp.message(F.text == "Задание 1")
-async def task1_menu(message: Message):
-    """Показывает меню задания 1"""
-    user_id = message.from_user.id
+@dp.message(F.text.startswith("Задание"))
+async def task_select(msg: Message):
+    """
+    Обработчик выбора задания (кнопки "Задание 1", "Задание 4", "Задание 5")
+    """
+    user_id = msg.from_user.id
     
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK1_MENU"}
-    else:
-        user_states[user_id]["state"] = "TASK1_MENU"
+    # Извлекаем номер задания из текста: "Задание 1" → "1"
+    task_num = msg.text.split()[1]
     
-    await message.answer(
-        "Задание 1: Обработка двух массивов\n\n"
-        "Алгоритм:\n"
-        "1. Сортировка первого массива по убыванию\n"
-        "2. Сортировка второго массива по возрастанию\n"
-        "3. Поэлементное сложение (при равенстве = 0)\n"
-        "4. Сортировка результата\n\n"
-        "Выберите действие:",
-        reply_markup=get_task1_keyboard()
-    )
-
-@dp.message(F.text == "Ввести массивы")
-async def task1_input_arrays(message: Message):
-    """Запрашивает ввод массивов для задания 1"""
-    user_id = message.from_user.id
+    # Устанавливаем состояние пользователя:
+    # "state": "task1"/"task4"/"task5" - указывает, какое задание выбрано
+    # "task": "1"/"4"/"5" - номер задания (сохраняем отдельно для удобства)
+    # "data": {} - пустой словарь для хранения введенных данных
+    users[user_id] = {
+        "state": f"task{task_num}",
+        "task": task_num,
+        "data": {}
+    }
     
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK1_INPUT"}
-    else:
-        user_states[user_id]["state"] = "TASK1_INPUT"
-    
-    await message.answer(
-        "Введите два массива через ; (пример: 1 2 3;4 5 6)\n"
-        "Массивы должны быть одинаковой длины!"
-    )
-
-@dp.message(F.text == "Сгенерировать")
-async def task1_generate_arrays(message: Message):
-    """Генерирует случайные массивы для задания 1"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"task1": {}}
-    
-    # Генерация двух массивов по 5 случайных чисел
-    arr1 = [random.randint(-10, 10) for _ in range(5)]
-    arr2 = [random.randint(-10, 10) for _ in range(5)]
-    
-    # Сохраняем массивы в состоянии пользователя
-    if "task1" not in user_states[user_id]:
-        user_states[user_id]["task1"] = {}
-    
-    user_states[user_id]["task1"]["arr1"] = arr1
-    user_states[user_id]["task1"]["arr2"] = arr2
-    user_states[user_id]["state"] = "TASK1_MENU"
-    
-    await message.answer(
-        f"Массивы сгенерированы\n\n"
-        f"Массив 1: {arr1}\n"
-        f"Массив 2: {arr2}",
-        reply_markup=get_task1_keyboard()
-    )
-
-@dp.message(F.text == "Выполнить расчет")
-async def task1_calculate(message: Message):
-    """Выполняет расчет для задания 1"""
-    user_id = message.from_user.id
-    
-    # Проверяем, есть ли данные для расчета
-    if user_id not in user_states or "task1" not in user_states[user_id]:
-        await message.answer("Сначала введите или сгенерируйте массивы!")
-        return
-    
-    task1_data = user_states[user_id]["task1"]
-    
-    if task1_data.get("arr1") is None or task1_data.get("arr2") is None:
-        await message.answer("Сначала введите или сгенерируйте массивы!")
-        return
-    
-    try:
-        # Выполняем алгоритм из task_1.py
-        result, sorted1, sorted2 = execute_task_1_algorithm(
-            task1_data["arr1"], 
-            task1_data["arr2"]
-        )
-        
-        # Сохраняем результат
-        user_states[user_id]["task1"]["result"] = result
-        user_states[user_id]["task1"]["sorted1"] = sorted1
-        user_states[user_id]["task1"]["sorted2"] = sorted2
-        
-        await message.answer(
-            f"Расчет выполнен\n\n"
-            f"Теперь можно посмотреть результат.",
-            reply_markup=get_task1_keyboard()
-        )
-    except Exception as e:
-        await message.answer(f"Ошибка вычисления: {e}")
-
-@dp.message(F.text == "Показать результат")
-async def task1_show_result(message: Message):
-    """Показывает результат задания 1"""
-    user_id = message.from_user.id
-    
-    # Проверяем, есть ли результат
-    if user_id not in user_states or "task1" not in user_states[user_id]:
-        await message.answer("Сначала выполните расчет!")
-        return
-    
-    task1_data = user_states[user_id]["task1"]
-    
-    if task1_data.get("result") is None:
-        await message.answer("Сначала выполните расчет!")
-        return
-    
-    # Форматируем и выводим результат
-    await message.answer(
-        f"Результат задания 1\n\n"
-        f"Исходные массивы:\n"
-        f"• Массив 1: {task1_data['arr1']}\n"
-        f"• Массив 2: {task1_data['arr2']}\n\n"
-        f"После сортировки:\n"
-        f"• Массив 1 (по убыванию): {task1_data['sorted1']}\n"
-        f"• Массив 2 (по возрастанию): {task1_data['sorted2']}\n\n"
-        f"Итоговый массив:\n{task1_data['result']}"
-    )
-
-# === ОБРАБОТЧИКИ ДЛЯ ЗАДАНИЯ 4 ===
-
-@dp.message(F.text == "Задание 4")
-async def task4_menu(message: Message):
-    """Показывает меню задания 4"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK4_MENU"}
-    else:
-        user_states[user_id]["state"] = "TASK4_MENU"
-    
-    await message.answer(
-        "Задание 4: Арифметика чисел-массивов\n\n"
-        "Алгоритм:\n"
-        "1. Ввод чисел в виде массивов цифр\n"
-        "2. Выбор операции (+ или -)\n"
-        "3. Выполнение арифметической операции\n"
-        "4. Вывод результата в виде массива цифр\n\n"
-        "Выберите действие:",
-        reply_markup=get_task4_keyboard()
-    )
-
-@dp.message(F.text == "Ввести числа")
-async def task4_input_numbers(message: Message):
-    """Запрашивает ввод чисел для задания 4"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK4_INPUT_NUMBERS"}
-    else:
-        user_states[user_id]["state"] = "TASK4_INPUT_NUMBERS"
-    
-    await message.answer(
-        "Введите два числа в виде массивов цифр через ;\n"
-        "Пример: 1 2 3;4 5 6\n"
-        "Первое число: 123\n"
-        "Второе число: 456"
-    )
+    # Показываем описание выбранного задания и меню действий
+    await msg.answer(TASK_DESC[task_num], reply_markup=TASK_KB)
 
 @dp.message(F.text == "Сгенерировать")
-async def task4_generate_numbers(message: Message):
-    """Генерирует случайные числа для задания 4"""
-    user_id = message.from_user.id
+async def generate_data(msg: Message):
+    """
+    Обработчик кнопки "Сгенерировать"
+    Генерирует случайные данные для выбранного задания
+    """
+    user_id = msg.from_user.id
+    user = users.get(user_id, {})  # Получаем данные пользователя
+    task = user.get("task", "1")  # Получаем номер задания (по умолчанию 1)
     
-    if user_id not in user_states:
-        user_states[user_id] = {"task4": {}}
+    # ГЕНЕРАЦИЯ ДЛЯ ЗАДАНИЯ 1
+    if task == "1":
+        # Генерируем 2 массива по 5 случайных чисел от -10 до 10
+        arr1 = [random.randint(-10, 10) for _ in range(5)]
+        arr2 = [random.randint(-10, 10) for _ in range(5)]
+        
+        # Сохраняем сгенерированные данные
+        users[user_id]["data"] = {"arr1": arr1, "arr2": arr2}
+        
+        # Показываем пользователю что сгенерировали
+        await msg.answer(f"Сгенерировано:\nМассив1: {arr1}\nМассив2: {arr2}")
     
-    # Генерация двух чисел (массивов цифр)
-    # Генерируем числа от 100 до 999 для удобства
-    num1 = random.randint(100, 999)
-    num2 = random.randint(100, 999)
+    # ГЕНЕРАЦИЯ ДЛЯ ЗАДАНИЯ 4
+    elif task == "4":
+        # Генерируем два трехзначных числа
+        num1 = random.randint(100, 999)
+        num2 = random.randint(100, 999)
+        
+        # Преобразуем числа в массивы цифр: 123 → [1, 2, 3]
+        arr1 = [int(d) for d in str(num1)]
+        arr2 = [int(d) for d in str(num2)]
+        
+        # Сохраняем данные
+        users[user_id]["data"] = {"arr1": arr1, "arr2": arr2}
+        
+        await msg.answer(f"Сгенерировано:\nЧисло1: {arr1}\nЧисло2: {arr2}")
     
-    # Преобразуем числа в массивы цифр
-    arr1 = [int(d) for d in str(num1)]
-    arr2 = [int(d) for d in str(num2)]
+    # ГЕНЕРАЦИЯ ДЛЯ ЗАДАНИЯ 5
+    elif task == "5":
+        # Генерируем массив из 8 чисел и целевую сумму
+        arr = [random.randint(-5, 10) for _ in range(8)]
+        target = random.randint(0, 20)
+        
+        # Сохраняем данные
+        users[user_id]["data"] = {"arr": arr, "target": target}
+        
+        await msg.answer(f"Сгенерировано:\nМассив: {arr}\nСумма: {target}")
     
-    # Сохраняем массивы в состоянии пользователя
-    if "task4" not in user_states[user_id]:
-        user_states[user_id]["task4"] = {}
-    
-    user_states[user_id]["task4"]["arr1"] = arr1
-    user_states[user_id]["task4"]["arr2"] = arr2
-    user_states[user_id]["state"] = "TASK4_MENU"
-    
-    await message.answer(
-        f"Числа сгенерированы\n\n"
-        f"Число 1 ({num1}): {arr1}\n"
-        f"Число 2 ({num2}): {arr2}",
-        reply_markup=get_task4_keyboard()
-    )
+    # Логируем событие
+    log(f"User {user_id} generated data for task {task}")
 
-@dp.message(F.text == "Выбрать операцию")
-async def task4_select_operation(message: Message):
-    """Предлагает выбрать операцию для задания 4"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK4_SELECT_OPERATION"}
-    else:
-        user_states[user_id]["state"] = "TASK4_SELECT_OPERATION"
-    
-    await message.answer(
-        "Выберите операцию:\n\n"
-        "Напишите + для сложения\n"
-        "Напишите - для вычитания"
-    )
-
-@dp.message(F.text == "Выполнить расчет")
-async def task4_calculate(message: Message):
-    """Выполняет расчет для задания 4"""
-    user_id = message.from_user.id
-    
-    # Проверяем, есть ли данные для расчета
-    if user_id not in user_states or "task4" not in user_states[user_id]:
-        await message.answer("Сначала введите или сгенерируйте числа и выберите операцию!")
-        return
-    
-    task4_data = user_states[user_id]["task4"]
-    
-    if task4_data.get("arr1") is None or task4_data.get("arr2") is None or task4_data.get("operation") is None:
-        await message.answer("Сначала введите или сгенерируйте числа и выберите операцию!")
-        return
+@dp.message(F.text == "Выполнить")
+async def execute_task(msg: Message):
+    """
+    Обработчик кнопки "Выполнить"
+    Запускает расчет для выбранного задания
+    """
+    user_id = msg.from_user.id
+    user = users.get(user_id, {})  # Данные пользователя
+    data = user.get("data", {})  # Введенные/сгенерированные данные
+    task = user.get("task", "1")  # Номер задания
     
     try:
-        # Выполняем алгоритм
-        result = execute_task_4_algorithm(
-            task4_data["arr1"], 
-            task4_data["arr2"],
-            task4_data["operation"]
-        )
-        
-        # Сохраняем результат
-        user_states[user_id]["task4"]["result"] = result
-        
-        await message.answer(
-            f"Расчет выполнен\n\n"
-            f"Теперь можно посмотреть результат.",
-            reply_markup=get_task4_keyboard()
-        )
-    except Exception as e:
-        await message.answer(f"Ошибка вычисления: {e}")
-
-@dp.message(F.text == "Показать результат")
-async def task4_show_result(message: Message):
-    """Показывает результат задания 4"""
-    user_id = message.from_user.id
-    
-    # Проверяем, есть ли результат
-    if user_id not in user_states or "task4" not in user_states[user_id]:
-        await message.answer("Сначала выполните расчет!")
-        return
-    
-    task4_data = user_states[user_id]["task4"]
-    
-    if task4_data.get("result") is None:
-        await message.answer("Сначала выполните расчет!")
-        return
-    
-    # Форматируем и выводим результат
-    operation_text = "сложение" if task4_data.get("operation") == "+" else "вычитание"
-    await message.answer(
-        f"Результат задания 4\n\n"
-        f"Число 1: {task4_data['arr1']}\n"
-        f"Число 2: {task4_data['arr2']}\n"
-        f"Операция: {operation_text}\n\n"
-        f"Результат: {task4_data['result']}"
-    )
-
-# === ОБРАБОТЧИКИ ДЛЯ ЗАДАНИЯ 5 ===
-
-@dp.message(F.text == "Задание 5")
-async def task5_menu(message: Message):
-    """Показывает меню задания 5"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK5_MENU"}
-    else:
-        user_states[user_id]["state"] = "TASK5_MENU"
-    
-    await message.answer(
-        "Задание 5: Подмассивы с заданной суммой\n\n"
-        "Алгоритм:\n"
-        "1. Ввод массива чисел\n"
-        "2. Ввод целевой суммы\n"
-        "3. Поиск всех подмассивов с заданной суммой\n"
-        "4. Вывод количества найденных подмассивов\n\n"
-        "Выберите действие:",
-        reply_markup=get_task5_keyboard()
-    )
-
-@dp.message(F.text == "Ввести массив")
-async def task5_input_array(message: Message):
-    """Запрашивает ввод массива для задания 5"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK5_INPUT_ARRAY"}
-    else:
-        user_states[user_id]["state"] = "TASK5_INPUT_ARRAY"
-    
-    await message.answer(
-        "Введите массив чисел через пробел\n"
-        "Пример: 1 2 3 4 5"
-    )
-
-@dp.message(F.text == "Ввести сумму")
-async def task5_input_sum(message: Message):
-    """Запрашивает ввод суммы для задания 5"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"state": "TASK5_INPUT_SUM"}
-    else:
-        user_states[user_id]["state"] = "TASK5_INPUT_SUM"
-    
-    await message.answer(
-        "Введите целевую сумму (целое число)\n"
-        "Пример: 10"
-    )
-
-@dp.message(F.text == "Сгенерировать")
-async def task5_generate(message: Message):
-    """Генерирует случайные данные для задания 5"""
-    user_id = message.from_user.id
-    
-    if user_id not in user_states:
-        user_states[user_id] = {"task5": {}}
-    
-    # Генерация массива
-    arr = [random.randint(-5, 10) for _ in range(8)]
-    # Генерация целевой суммы
-    target_sum = random.randint(0, 20)
-    
-    # Сохраняем данные в состоянии пользователя
-    if "task5" not in user_states[user_id]:
-        user_states[user_id]["task5"] = {}
-    
-    user_states[user_id]["task5"]["arr"] = arr
-    user_states[user_id]["task5"]["target_sum"] = target_sum
-    user_states[user_id]["state"] = "TASK5_MENU"
-    
-    await message.answer(
-        f"Данные сгенерированы\n\n"
-        f"Массив: {arr}\n"
-        f"Целевая сумма: {target_sum}",
-        reply_markup=get_task5_keyboard()
-    )
-
-@dp.message(F.text == "Выполнить расчет")
-async def task5_calculate(message: Message):
-    """Выполняет расчет для задания 5"""
-    user_id = message.from_user.id
-    
-    # Проверяем, есть ли данные для расчета
-    if user_id not in user_states or "task5" not in user_states[user_id]:
-        await message.answer("Сначала введите или сгенерируйте массив и сумму!")
-        return
-    
-    task5_data = user_states[user_id]["task5"]
-    
-    if task5_data.get("arr") is None or task5_data.get("target_sum") is None:
-        await message.answer("Сначала введите или сгенерируйте массив и сумму!")
-        return
-    
-    try:
-        # Выполняем алгоритм
-        result = execute_task_5_algorithm(
-            task5_data["arr"], 
-            task5_data["target_sum"]
-        )
-        
-        # Сохраняем результат
-        user_states[user_id]["task5"]["result"] = result
-        
-        await message.answer(
-            f"Расчет выполнен\n\n"
-            f"Теперь можно посмотреть результат.",
-            reply_markup=get_task5_keyboard()
-        )
-    except Exception as e:
-        await message.answer(f"Ошибка вычисления: {e}")
-
-@dp.message(F.text == "Показать результат")
-async def task5_show_result(message: Message):
-    """Показывает результат задания 5"""
-    user_id = message.from_user.id
-    
-    # Проверяем, есть ли результат
-    if user_id not in user_states or "task5" not in user_states[user_id]:
-        await message.answer("Сначала выполните расчет!")
-        return
-    
-    task5_data = user_states[user_id]["task5"]
-    
-    if task5_data.get("result") is None:
-        await message.answer("Сначала выполните расчет!")
-        return
-    
-    # Форматируем и выводим результат
-    await message.answer(
-        f"Результат задания 5\n\n"
-        f"Массив: {task5_data['arr']}\n"
-        f"Целевая сумма: {task5_data['target_sum']}\n\n"
-        f"Количество подмассивов с заданной суммой: {task5_data['result']}"
-    )
-
-@dp.message(F.text == "В главное меню")
-async def back_to_main(message: Message):
-    """Возвращает в главное меню"""
-    user_id = message.from_user.id
-    if user_id in user_states:
-        user_states[user_id]["state"] = "MAIN_MENU"
-    
-    await message.answer(
-        "Главное меню\n\n"
-        "Выберите задание для работы:",
-        reply_markup=get_main_keyboard()
-    )
-
-# === ОБРАБОТЧИК ТЕКСТОВОГО ВВОДА ===
-# Обрабатывает текстовый ввод для всех заданий
-
-@dp.message()
-async def handle_text_input(message: Message):
-    """Обработчик текстового ввода"""
-    user_id = message.from_user.id
-    text = message.text.strip()
-    
-    if user_id not in user_states:
-        await message.answer("Используйте /start для начала работы")
-        return
-    
-    state = user_states[user_id].get("state", "MAIN_MENU")
-    
-    # Обработка ввода для задания 1
-    if state == "TASK1_INPUT":
-        try:
-            arr1_text, arr2_text = text.split(";")
-            arr1 = list(map(int, arr1_text.strip().split()))
-            arr2 = list(map(int, arr2_text.strip().split()))
+        # ВЫПОЛНЕНИЕ ЗАДАНИЯ 1
+        if task == "1" and "arr1" in data and "arr2" in data:
+            # Вызываем алгоритм из task_1.py
+            result = execute_1(data["arr1"], data["arr2"])
             
-            if len(arr1) != len(arr2):
-                await message.answer("Массивы должны быть одинаковой длины!")
+            # Сохраняем результат
+            users[user_id]["result"] = result
+            
+            await msg.answer(f"Результат вычислен: {result}")
+        
+        # ВЫПОЛНЕНИЕ ЗАДАНИЯ 4
+        elif task == "4" and "arr1" in data and "arr2" in data:
+            # Проверяем, выбрана ли операция
+            if "operation" not in data:
+                await msg.answer("Введите операцию (+ или -):")
+                
+                # Меняем состояние - ждем ввода операции
+                users[user_id]["state"] = "await_op"
                 return
             
-            if "task1" not in user_states[user_id]:
-                user_states[user_id]["task1"] = {}
+            # Вызываем алгоритм из task_4.py
+            result = execute_4(data["arr1"], data["arr2"], data["operation"])
             
-            user_states[user_id]["task1"]["arr1"] = arr1
-            user_states[user_id]["task1"]["arr2"] = arr2
-            user_states[user_id]["state"] = "TASK1_MENU"
+            # Сохраняем результат
+            users[user_id]["result"] = result
             
-            await message.answer(
-                f"Массивы сохранены\n\n"
-                f"Массив 1: {arr1}\n"
-                f"Массив 2: {arr2}",
-                reply_markup=get_task1_keyboard()
-            )
-        except Exception as e:
-            await message.answer(f"Ошибка ввода: {e}\n\nПример: 1 2 3;4 5 6")
-    
-    # Обработка ввода для задания 4 (числа)
-    elif state == "TASK4_INPUT_NUMBERS":
-        try:
-            arr1_text, arr2_text = text.split(";")
-            arr1 = list(map(int, arr1_text.strip().split()))
-            arr2 = list(map(int, arr2_text.strip().split()))
+            await msg.answer(f"Результат вычислен: {result}")
+        
+        # ВЫПОЛНЕНИЕ ЗАДАНИЯ 5
+        elif task == "5" and "arr" in data and "target" in data:
+            # Вызываем алгоритм из task_5.py
+            result = execute_5(data["arr"], data["target"])
             
-            if "task4" not in user_states[user_id]:
-                user_states[user_id]["task4"] = {}
+            # Сохраняем результат
+            users[user_id]["result"] = result
             
-            user_states[user_id]["task4"]["arr1"] = arr1
-            user_states[user_id]["task4"]["arr2"] = arr2
-            user_states[user_id]["state"] = "TASK4_MENU"
-            
-            await message.answer(
-                f"Числа сохранены\n\n"
-                f"Число 1: {arr1}\n"
-                f"Число 2: {arr2}\n\n"
-                f"Теперь выберите операцию.",
-                reply_markup=get_task4_keyboard()
-            )
-        except Exception as e:
-            await message.answer(f"Ошибка ввода: {e}\n\nПример: 1 2 3;4 5 6")
-    
-    # Обработка выбора операции для задания 4
-    elif state == "TASK4_SELECT_OPERATION":
-        if text in ['+', '-']:
-            if "task4" not in user_states[user_id]:
-                user_states[user_id]["task4"] = {}
-            
-            user_states[user_id]["task4"]["operation"] = text
-            user_states[user_id]["state"] = "TASK4_MENU"
-            
-            operation_text = "сложение" if text == '+' else "вычитание"
-            await message.answer(
-                f"Операция выбрана: {operation_text}\n\n"
-                f"Теперь можно выполнить расчет.",
-                reply_markup=get_task4_keyboard()
-            )
+            await msg.answer(f"Найдено подмассивов: {result}")
+        
+        # ЕСЛИ ДАННЫХ НЕТ
         else:
-            await message.answer("Введите '+' или '-'")
+            await msg.answer("Сначала введите или сгенерируйте данные!")
     
-    # Обработка ввода массива для задания 5
-    elif state == "TASK5_INPUT_ARRAY":
-        try:
-            arr = list(map(int, text.split()))
-            
-            if "task5" not in user_states[user_id]:
-                user_states[user_id]["task5"] = {}
-            
-            user_states[user_id]["task5"]["arr"] = arr
-            user_states[user_id]["state"] = "TASK5_MENU"
-            
-            await message.answer(
-                f"Массив сохранен: {arr}\n\n"
-                f"Теперь введите целевую сумму.",
-                reply_markup=get_task5_keyboard()
-            )
-        except Exception as e:
-            await message.answer(f"Ошибка ввода: {e}\n\nПример: 1 2 3 4 5")
-    
-    # Обработка ввода суммы для задания 5
-    elif state == "TASK5_INPUT_SUM":
-        try:
-            target_sum = int(text)
-            
-            if "task5" not in user_states[user_id]:
-                user_states[user_id]["task5"] = {}
-            
-            user_states[user_id]["task5"]["target_sum"] = target_sum
-            user_states[user_id]["state"] = "TASK5_MENU"
-            
-            await message.answer(
-                f"Целевая сумма сохранена: {target_sum}\n\n"
-                f"Теперь можно выполнить расчет.",
-                reply_markup=get_task5_keyboard()
-            )
-        except Exception as e:
-            await message.answer(f"Ошибка ввода: {e}\n\nВведите целое число")
-    
-    # Обработка неизвестных команд
-    else:
-        await message.answer("Не понимаю команду. Используйте кнопки меню.")
-
-# === ЗАПУСК БОТА ===
-async def main():
-    """Главная функция запуска бота"""
-    logger.info("Бот запускается...")
-    print("=" * 50)
-    print("Бот запущен!")
-    print("Откройте Telegram и найдите вашего бота")
-    print("Используйте /start для начала работы")
-    print("=" * 50)
-    print("Бот работает... (Ctrl+C для остановки)")
-    
-    # Запускаем опрос обновлений от Telegram
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    try:
-        # Запускаем асинхронную функцию main
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nБот остановлен пользователем")
-        logger.info("Bot stopped by user")
     except Exception as e:
-        print(f"Ошибка запуска бота: {e}")
-        logger.error(f"Bot error: {e}")
+        # Обрабатываем ошибки (исключения из task_*.py)
+        await msg.answer(f"Ошибка: {e}")
+        
+        # Логируем ошибку
+        log(f"Error in task {task}: {e}")
+
+@dp.message(F.text == "Результат")
+async def show_result(msg: Message):
+    """
+    Обработчик кнопки "Результат"
+    Показывает последний сохраненный результат
+    """
+    user_id = msg.from_user.id
+    result = users.get(user_id, {}).get("result")  # Получаем результат
+    
+    # Если результат есть - показываем, иначе просим выполнить расчет
+    if result:
+        await msg.answer(f"Результат: {result}")
+    else:
+        await msg.answer("Сначала выполните расчет!")
+
+# ========== ОБРАБОТЧИК ТЕКСТОВОГО ВВОДА ==========
+
+@dp.message()
+async def handle_text(msg: Message):
+    """
+    Обработчик ВСЕХ текстовых сообщений, не обработанных другими обработчиками
+    Здесь обрабатываем ручной ввод данных
+    """
+    user_id = msg.from_user.id
+    user = users.get(user_id, {})  # Получаем данные пользователя
+    state = user.get("state", "")  # Текущее состояние
+    text = msg.text.strip()  # Текст сообщения (убираем пробелы)
+    
+    # ВВОД ДАННЫХ ДЛЯ ЗАДАНИЯ 1
+    # Формат: "1 2 3;4 5 6"
+    if state == "task1" and user.get("task") == "1":
+        try:
+            # Разделяем на две части по ";"
+            # arr1_text = "1 2 3", arr2_text = "4 5 6"
+            arr1_text, arr2_text = map(lambda x: x.strip(), text.split(";"))
+            
+            # Преобразуем строки в списки чисел
+            # "1 2 3" → [1, 2, 3]
+            arr1 = list(map(int, arr1_text.split()))
+            arr2 = list(map(int, arr2_text.split()))
+            
+            # Сохраняем данные
+            users[user_id]["data"] = {"arr1": arr1, "arr2": arr2}
+            
+            # Подтверждаем сохранение
+            await msg.answer(f"Сохранено:\nМассив1: {arr1}\nМассив2: {arr2}")
+        
+        except:
+            # Если ошибка формата - показываем пример
+            await msg.answer("Ошибка формата! Используйте: '1 2 3;4 5 6'")
+    
+    # ВВОД ДАННЫХ ДЛЯ ЗАДАНИЯ 4
+    # Два формата:
+    # 1. Полный: "1 2 3|4 5 6;+" (числа и операция сразу)
+    # 2. Поэтапный: сначала числа, потом операция
+    elif state == "task4" and user.get("task") == "4":
+        # ПОЛНЫЙ ФОРМАТ (числа + операция)
+        if ";" in text:
+            try:
+                # Разделяем: nums="1 2 3|4 5 6", op="+"
+                nums, op = text.split(";")
+                
+                # Разделяем числа: left="1 2 3", right="4 5 6"
+                arr1_text, arr2_text = map(lambda x: x.strip(), nums.split("|"))
+                
+                # Преобразуем в списки чисел
+                arr1 = list(map(int, arr1_text.split()))
+                arr2 = list(map(int, arr2_text.split()))
+                
+                # Сохраняем все данные
+                users[user_id]["data"] = {"arr1": arr1, "arr2": arr2, "operation": op}
+                
+                await msg.answer(f"Сохранено:\nЧисло1: {arr1}\nЧисло2: {arr2}\nОперация: {op}")
+            
+            except:
+                await msg.answer("Ошибка! Формат: '1 2 3|4 5 6;+'")
+        
+        # ТОЛЬКО ОПЕРАЦИЯ (если числа уже введены)
+        elif text in "+-":
+            # Добавляем операцию к существующим данным
+            users[user_id]["data"]["operation"] = text
+            
+            await msg.answer(f"Операция сохранена: {text}")
+    
+    # ВВОД ДАННЫХ ДЛЯ ЗАДАНИЯ 5
+    # Формат: "1 2 3 4;5"
+    elif state == "task5" and user.get("task") == "5":
+        try:
+            # Разделяем: arr_text="1 2 3 4", target_text="5"
+            arr_text, target_text = text.split(";")
+            
+            # Преобразуем
+            arr = list(map(int, arr_text.split()))  # "1 2 3 4" → [1, 2, 3, 4]
+            target = int(target_text.strip())  # "5" → 5
+            
+            # Сохраняем
+            users[user_id]["data"] = {"arr": arr, "target": target}
+            
+            await msg.answer(f"Сохранено:\nМассив: {arr}\nСумма: {target}")
+        
+        except:
+            await msg.answer("Ошибка! Формат: '1 2 3 4;5'")
+    
+    # ОЖИДАНИЕ ОПЕРАЦИИ ДЛЯ ЗАДАНИЯ 4
+    elif state == "await_op" and text in "+-":
+        # Пользователь ввел операцию после запроса
+        users[user_id]["data"]["operation"] = text
+        users[user_id]["state"] = "task4"  # Возвращаем в обычное состояние
+        
+        await msg.answer(f"Операция сохранена: {text}")
+    
+    # НЕИЗВЕСТНАЯ КОМАНДА
+    else:
+        await msg.answer("Используйте кнопки меню")
+
+# ========== ФУНКЦИЯ ЗАПУСКА ==========
+
+async def run():
+    """
+    Основная функция запуска бота
+    Вызывается из main.py
+    """
+    print("Бот запущен. Используйте /start в Telegram")
+    
+    # Запускаем "опрос" (polling) - бот постоянно проверяет новые сообщения
+    # Это основной цикл работы бота
+    await dp.start_polling(bot)

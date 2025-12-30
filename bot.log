@@ -1,0 +1,88 @@
+2025-12-28 17:39:19,545 - Start polling
+2025-12-28 17:39:19,959 - Run polling for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 17:39:24,105 - User 1152491334 started
+2025-12-28 17:39:24,105 - Update id=22694850 is handled. Duration 406 ms by bot id=8525462952
+2025-12-28 17:39:29,020 - Update id=22694851 is handled. Duration 140 ms by bot id=8525462952
+2025-12-28 17:39:34,706 - Update id=22694852 is handled. Duration 125 ms by bot id=8525462952
+2025-12-28 17:39:37,584 - User 1152491334 generated data for task 1
+2025-12-28 17:39:37,584 - Update id=22694853 is handled. Duration 172 ms by bot id=8525462952
+2025-12-28 17:39:39,749 - Update id=22694854 is handled. Duration 125 ms by bot id=8525462952
+2025-12-28 17:39:42,117 - Update id=22694855 is handled. Duration 140 ms by bot id=8525462952
+2025-12-28 17:39:43,703 - Update id=22694856 is handled. Duration 108 ms by bot id=8525462952
+2025-12-28 17:40:29,999 - Polling stopped
+2025-12-28 17:40:30,254 - Polling stopped for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 17:46:47,924 - Start polling
+2025-12-28 17:46:48,415 - Run polling for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 17:46:56,611 - User 1152491334 started
+2025-12-28 17:46:56,611 - Update id=22694857 is handled. Duration 421 ms by bot id=8525462952
+2025-12-28 17:47:02,262 - Update id=22694858 is handled. Duration 172 ms by bot id=8525462952
+2025-12-28 17:47:06,415 - Update id=22694859 is handled. Duration 125 ms by bot id=8525462952
+2025-12-28 17:47:08,408 - User 1152491334 generated data for task 1
+2025-12-28 17:47:08,408 - Update id=22694860 is handled. Duration 140 ms by bot id=8525462952
+2025-12-28 17:47:10,625 - Update id=22694861 is handled. Duration 140 ms by bot id=8525462952
+2025-12-28 17:47:11,610 - Update id=22694862 is handled. Duration 187 ms by bot id=8525462952
+2025-12-28 17:47:13,405 - Update id=22694863 is handled. Duration 156 ms by bot id=8525462952
+2025-12-28 17:47:15,304 - Update id=22694864 is handled. Duration 125 ms by bot id=8525462952
+2025-12-28 17:47:16,808 - User 1152491334 generated data for task 5
+2025-12-28 17:47:16,808 - Update id=22694865 is handled. Duration 141 ms by bot id=8525462952
+2025-12-28 17:47:17,681 - Update id=22694866 is handled. Duration 156 ms by bot id=8525462952
+2025-12-28 17:47:18,775 - Update id=22694867 is handled. Duration 140 ms by bot id=8525462952
+2025-12-28 17:47:21,192 - Update id=22694868 is handled. Duration 139 ms by bot id=8525462952
+2025-12-28 18:30:11,826 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-12-28 18:30:12,150 - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8525462952)
+2025-12-28 19:13:04,306 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-12-28 19:13:04,326 - Sleep for 1.356456 seconds and try again... (tryings = 1, bot id = 8525462952)
+2025-12-28 19:13:16,596 - Connection established (tryings = 2, bot id = 8525462952)
+2025-12-28 19:35:43,731 - Polling stopped
+2025-12-28 19:35:44,040 - Polling stopped for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 20:11:12,974 - Start polling
+2025-12-28 20:11:13,438 - Run polling for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 20:11:16,355 - Polling stopped
+2025-12-28 20:11:16,621 - Polling stopped for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 20:49:30,289 - Start polling
+2025-12-28 20:49:30,775 - Run polling for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-28 20:49:33,899 - Update id=22694869 is handled. Duration 578 ms by bot id=8525462952
+2025-12-28 20:49:36,125 - Update id=22694870 is handled. Duration 140 ms by bot id=8525462952
+2025-12-28 20:49:37,752 - User 1152491334 generated data for task 1
+2025-12-28 20:49:37,752 - Update id=22694871 is handled. Duration 186 ms by bot id=8525462952
+2025-12-28 20:49:39,148 - Update id=22694872 is handled. Duration 172 ms by bot id=8525462952
+2025-12-28 22:07:16,102 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-12-28 22:07:16,121 - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8525462952)
+2025-12-28 22:07:27,912 - Connection established (tryings = 1, bot id = 8525462952)
+2025-12-28 23:09:03,096 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-12-28 23:09:04,195 - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8525462952)
+2025-12-29 07:09:37,233 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-12-29 07:09:37,234 - Sleep for 1.363233 seconds and try again... (tryings = 1, bot id = 8525462952)
+2025-12-29 07:09:38,705 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2025-12-29 07:09:38,705 - Sleep for 1.806187 seconds and try again... (tryings = 2, bot id = 8525462952)
+2025-12-29 09:29:13,910 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2025-12-29 09:29:13,910 - Sleep for 2.310047 seconds and try again... (tryings = 3, bot id = 8525462952)
+2025-12-29 09:29:28,176 - Connection established (tryings = 4, bot id = 8525462952)
+2025-12-29 09:29:28,210 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientOSError: [WinError 10053] Программа на вашем хост-компьютере разорвала установленное подключение
+2025-12-29 09:29:28,212 - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8525462952)
+2025-12-29 13:07:39,227 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2025-12-29 13:07:39,227 - Sleep for 1.300046 seconds and try again... (tryings = 1, bot id = 8525462952)
+2025-12-29 13:07:40,760 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2025-12-29 13:07:40,760 - Sleep for 1.747795 seconds and try again... (tryings = 2, bot id = 8525462952)
+2025-12-29 13:07:42,562 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2025-12-29 13:07:42,562 - Sleep for 2.233125 seconds and try again... (tryings = 3, bot id = 8525462952)
+2025-12-29 13:07:44,984 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ClientConnectorDNSError: Cannot connect to host api.telegram.org:443 ssl:default [getaddrinfo failed]
+2025-12-29 13:07:44,992 - Sleep for 3.039096 seconds and try again... (tryings = 4, bot id = 8525462952)
+2025-12-29 13:07:58,999 - Connection established (tryings = 5, bot id = 8525462952)
+2025-12-29 14:01:05,871 - Polling stopped
+2025-12-29 14:01:06,178 - Polling stopped for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-29 15:49:50,230 - Start polling
+2025-12-29 15:49:50,652 - Run polling for bot @DimaTTP_bot id=8525462952 - 'TTP'
+2025-12-29 15:49:53,531 - User 1152491334 started
+2025-12-29 15:49:53,531 - Update id=22694873 is handled. Duration 453 ms by bot id=8525462952
+2025-12-29 15:49:58,146 - Update id=22694874 is handled. Duration 156 ms by bot id=8525462952
+2025-12-29 15:50:05,328 - User 1152491334 generated data for task 1
+2025-12-29 15:50:05,328 - Update id=22694875 is handled. Duration 327 ms by bot id=8525462952
+2025-12-29 15:50:08,862 - Update id=22694876 is handled. Duration 234 ms by bot id=8525462952
+2025-12-29 15:50:10,081 - Update id=22694877 is handled. Duration 171 ms by bot id=8525462952
+2025-12-29 15:50:11,845 - Update id=22694878 is handled. Duration 155 ms by bot id=8525462952
+2025-12-29 15:50:30,164 - Update id=22694879 is handled. Duration 358 ms by bot id=8525462952
+2025-12-29 15:50:50,699 - Update id=22694880 is handled. Duration 421 ms by bot id=8525462952
+2025-12-29 15:57:49,818 - Failed to fetch updates - TelegramNetworkError: HTTP Client says - Request timeout error
+2025-12-29 15:57:49,824 - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8525462952)
+2025-12-29 15:58:01,378 - Connection established (tryings = 1, bot id = 8525462952)
